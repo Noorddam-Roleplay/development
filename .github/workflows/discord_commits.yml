@@ -3,7 +3,7 @@ name: Discord Commits
 on:
   push:
     branches:
-      - main  # of welke branch je wilt tracken
+      - master
 
 jobs:
   discord_commits:
@@ -13,9 +13,8 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v3
 
-      - name: Discord Commits
+      - name: Send commits to Discord
         uses: Sniddl/discord-commits@v1.6
         with:
           webhook: ${{ secrets.DISCORD_WEBHOOK }}
           template: "avatar-with-link"
-          include-extras: true
