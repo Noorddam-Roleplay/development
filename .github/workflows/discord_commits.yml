@@ -1,0 +1,21 @@
+name: Discord Commits
+
+on:
+  push:
+    branches:
+      - main  # of welke branch je wilt tracken
+
+jobs:
+  discord_commits:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v3
+
+      - name: Discord Commits
+        uses: Sniddl/discord-commits@v1.6
+        with:
+          webhook: ${{ secrets.DISCORD_WEBHOOK }}
+          template: "avatar-with-link"
+          include-extras: true
