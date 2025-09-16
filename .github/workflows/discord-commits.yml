@@ -1,0 +1,42 @@
+name: Discord Commit Notifications
+
+on:
+  push:
+    branches:
+      - development
+      - master
+
+jobs:
+  discord:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Build commit message
+        id: commits
+        run: |
+          # Collect all commit messages, filter out "Merge pull request"
+          messages=$(jq -r '.commits[].message' $GITHUB_EVENT_PATH | grep -v "Merge pull request" || true)
+          
+          # Count commits
+          count=$(echo "$messages" | grep -c . || true)
+
+          # Build the final string
+          if [ "$count" -gt 0 ]; then
+            output="**${GITHUB_ACTOR}**\n[${GITHUB_REF_NAME}] $count new commits\n"
+            while IFS= read -r line; do
+              sha=$(git rev-parse --short HEAD)
+              output="$output- $line - ${GITHUB_ACTOR}\n"
+            done <<< "$messages"
+            echo "text=$output" >> $GITHUB_OUTPUT
+          else
+            echo "text=" >> $GITHUB_OUTPUT
+          fi
+
+      - name: Send to Discord
+        if: steps.commits.outputs.text != ''
+        uses: tsickert/discord-webhook-action@v4.0.0
+        with:
+          webhook-url: ${{ secrets.DISCORD_WEBHOOK }}
+          content: ${{ steps.commits.outputs.text }}
