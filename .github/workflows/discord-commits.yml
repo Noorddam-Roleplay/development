@@ -10,45 +10,47 @@ jobs:
   discord:
     runs-on: ubuntu-latest
     steps:
-      # Stap 1: Checkout code
       - name: Checkout
         uses: actions/checkout@v4
 
-      # Stap 2: Verzamel commit messages, filter merge commits
       - name: Build commit message
         id: commits
         run: |
-          # Haal alle commits op die geen "Merge pull request" bevatten
-          commits=$(jq -r '.commits[] | select(.message | test("Merge pull request") | not) | @base64' $GITHUB_EVENT_PATH)
+          # Haal alle commits op die geen merge zijn
+          commits=$(jq -c '.commits[] | select(.message | test("Merge pull request") | not)' $GITHUB_EVENT_PATH)
 
-          if [ -z "$commits" ]; then
-            echo "commits_json=[]" >> $GITHUB_OUTPUT
-          else
-            # Bouw JSON array voor Discord embed
-            echo "commits_json=[" >> $GITHUB_OUTPUT
+          embeds="[]"
+
+          if [ -n "$commits" ]; then
+            embeds="["
             first=true
             for c in $commits; do
-              _jq() {
-                echo "${c}" | base64 --decode | jq -r "${1}"
-              }
+              title=$(echo "$c" | jq -r '.message')
+              url=$(echo "$c" | jq -r '.url')
+              author_name=$(echo "$c" | jq -r '.author.name')
+              author_username=$(echo "$c" | jq -r '.author.username')
 
-              title=$(_jq '.message')
-              url=$(_jq '.url')
-              author_name=$(_jq '.author.name')
-              author_username=$(_jq '.author.username')
+              embed=$(jq -n \
+                --arg title "$title" \
+                --arg desc "$title" \
+                --arg url "$url" \
+                --arg name "$author_name" \
+                --arg icon "https://github.com/$author_username.png" \
+                '{title:$title, description:$desc, url:$url, author:{name:$name, icon_url:$icon}}')
 
               if [ "$first" = true ]; then
+                embeds="$embed"
                 first=false
               else
-                echo "," >> $GITHUB_OUTPUT
+                embeds="$embeds,$embed"
               fi
-
-              echo "{\"title\":\"$title\",\"description\":\"$title\",\"url\":\"$url\",\"author\":{\"name\":\"$author_name\",\"icon_url\":\"https://github.com/$author_username.png\"}}" >> $GITHUB_OUTPUT
             done
-            echo "]" >> $GITHUB_OUTPUT
+            embeds="[$embeds]"
           fi
 
-      # Stap 3: Stuur naar Discord via Sniddle
+          # Encode als base64 om veilig naar GITHUB_OUTPUT te sturen
+          echo "commits_json=$(echo "$embeds" | base64)" >> $GITHUB_OUTPUT
+
       - name: Discord Commits
         uses: Sniddl/discord-commits@v1.6
         with:
