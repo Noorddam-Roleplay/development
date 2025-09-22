@@ -32,11 +32,17 @@ jobs:
             echo "text=$output" >> $GITHUB_OUTPUT
           else
             echo "text=" >> $GITHUB_OUTPUT
-          fi
 
       - name: Discord Commits
         uses: Sniddl/discord-commits@v1.6
         with:
-              webhook: ${{ secrets.DISCORD_WEBHOOK }}
-              template: "avatar-with-link"
-              include-extras: true
+          webhook: ${{ secrets.DISCORD_WEBHOOK }}
+          template: "custom"
+          include-extras: true
+          embed: |
+            title: "{{ commit.title }}"
+            description: "{{ commit.description }}"
+            url: "{{ commit.url }}"
+            author:
+              name: "{{ commit.author.name }}"
+              icon_url: "https://github.com/{{ commit.author.username }}.png"
