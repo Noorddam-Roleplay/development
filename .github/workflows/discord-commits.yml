@@ -34,10 +34,9 @@ jobs:
             echo "text=" >> $GITHUB_OUTPUT
           fi
 
-      - name: Send to Discord
-        if: steps.commits.outputs.text != ''
-        uses: Ilshidur/action-discord@master
+      - name: Discord Commits
+        uses: Sniddl/discord-commits@v1.6
         with:
-          webhook-url: ${{ secrets.DISCORD_WEBHOOK }}
-          content: ${{ steps.commits.outputs.text }}
-          message: "Your commit message here"
+              webhook: ${{ secrets.DISCORD_WEBHOOK }}
+              template: "avatar-with-link"
+              include-extras: true
