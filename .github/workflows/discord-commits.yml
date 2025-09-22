@@ -10,34 +10,49 @@ jobs:
   discord:
     runs-on: ubuntu-latest
     steps:
+      # Stap 1: Checkout code
       - name: Checkout
         uses: actions/checkout@v4
 
+      # Stap 2: Verzamel commit messages, filter merge commits
       - name: Build commit message
         id: commits
         run: |
-          # Collect all commit messages, filter out "Merge pull request"
-          messages=$(jq -r '.commits[].message' $GITHUB_EVENT_PATH | grep -v "Merge pull request" || true)
-          
-          # Count commits
-          count=$(echo "$messages" | grep -c . || true)
+          # Haal alle commits op die geen "Merge pull request" bevatten
+          commits=$(jq -r '.commits[] | select(.message | test("Merge pull request") | not) | @base64' $GITHUB_EVENT_PATH)
 
-          # Build the final string
-          if [ "$count" -gt 0 ]; then
-            output="**${GITHUB_ACTOR}**\n[${GITHUB_REF_NAME}] $count new commits\n"
-            while IFS= read -r line; do
-              sha=$(git rev-parse --short HEAD)
-              output="$output- $line - ${GITHUB_ACTOR}\n"
-            done <<< "$messages"
-            echo "text=$output" >> $GITHUB_OUTPUT
+          if [ -z "$commits" ]; then
+            echo "commits_json=[]" >> $GITHUB_OUTPUT
           else
-            echo "text=" >> $GITHUB_OUTPUT
+            # Bouw JSON array voor Discord embed
+            echo "commits_json=[" >> $GITHUB_OUTPUT
+            first=true
+            for c in $commits; do
+              _jq() {
+                echo "${c}" | base64 --decode | jq -r "${1}"
+              }
+
+              title=$(_jq '.message')
+              url=$(_jq '.url')
+              author_name=$(_jq '.author.name')
+              author_username=$(_jq '.author.username')
+
+              if [ "$first" = true ]; then
+                first=false
+              else
+                echo "," >> $GITHUB_OUTPUT
+              fi
+
+              echo "{\"title\":\"$title\",\"description\":\"$title\",\"url\":\"$url\",\"author\":{\"name\":\"$author_name\",\"icon_url\":\"https://github.com/$author_username.png\"}}" >> $GITHUB_OUTPUT
+            done
+            echo "]" >> $GITHUB_OUTPUT
           fi
 
+      # Stap 3: Stuur naar Discord via Sniddle
       - name: Discord Commits
         uses: Sniddl/discord-commits@v1.6
         with:
-             webhook: ${{ secrets.DISCORD_WEBHOOK }}
-             template: "custom"
-             include-extras: true
-             embed: '{"title":"{{ commit.title }}","description":"{{ commit.description }}","url":"{{ commit.url }}","author":{"name":"{{ commit.author.name }}","icon_url":"https://github.com/{{ commit.author.username }}.png"}}'
+          webhook: ${{ secrets.DISCORD_WEBHOOK }}
+          template: "custom"
+          include-extras: true
+          embed: ${{ steps.commits.outputs.commits_json }}
