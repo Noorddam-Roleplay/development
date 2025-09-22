@@ -13,45 +13,40 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v4
 
-      - name: Build commit message
+      - name: Build commit embeds
         id: commits
         run: |
-          # Haal alle commits op die geen merge zijn
-          commits=$(jq -c '.commits[] | select(.message | test("Merge pull request") | not)' $GITHUB_EVENT_PATH)
-
+          # Maak een lege array voor embeds
           embeds="[]"
 
-          if [ -n "$commits" ]; then
-            embeds="["
-            first=true
-            for c in $commits; do
-              title=$(echo "$c" | jq -r '.message')
-              url=$(echo "$c" | jq -r '.url')
-              author_name=$(echo "$c" | jq -r '.author.name')
-              author_username=$(echo "$c" | jq -r '.author.username')
+          # Loop door alle commits in de push, filter merge commits
+          jq -c '.commits[] | select(.message | test("Merge pull request") | not)' $GITHUB_EVENT_PATH | while read commit; do
+            title=$(echo "$commit" | jq -r '.message')
+            url=$(echo "$commit" | jq -r '.url')
+            author_name=$(echo "$commit" | jq -r '.author.name')
+            author_username=$(echo "$commit" | jq -r '.author.username')
 
-              embed=$(jq -n \
-                --arg title "$title" \
-                --arg desc "$title" \
-                --arg url "$url" \
-                --arg name "$author_name" \
-                --arg icon "https://github.com/$author_username.png" \
-                '{title:$title, description:$desc, url:$url, author:{name:$name, icon_url:$icon}}')
+            # Maak JSON embed voor deze commit
+            embed=$(jq -n \
+              --arg title "$title" \
+              --arg desc "$title" \
+              --arg url "$url" \
+              --arg name "$author_name" \
+              --arg icon "https://github.com/$author_username.png" \
+              '{title:$title, description:$desc, url:$url, author:{name:$name, icon_url:$icon}}')
 
-              if [ "$first" = true ]; then
-                embeds="$embed"
-                first=false
-              else
-                embeds="$embeds,$embed"
-              fi
-            done
-            embeds="[$embeds]"
-          fi
+            # Voeg toe aan embeds array
+            if [ "$embeds" = "[]" ]; then
+              embeds="[$embed]"
+            else
+              embeds=$(echo "$embeds" | jq ". + [$embed]")
+            fi
+          done
 
-          # Encode als base64 om veilig naar GITHUB_OUTPUT te sturen
-          echo "commits_json=$(echo "$embeds" | base64)" >> $GITHUB_OUTPUT
+          # Zet embeds output
+          echo "commits_json=$embeds" >> $GITHUB_OUTPUT
 
-      - name: Discord Commits
+      - name: Send to Discord
         uses: Sniddl/discord-commits@v1.6
         with:
           webhook: ${{ secrets.DISCORD_WEBHOOK }}
