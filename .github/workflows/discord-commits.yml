@@ -1,55 +1,20 @@
-name: Discord Commit Notifications
+name: Discord Updates
 
 on:
   push:
     branches:
-      - development
-      - master
+      - main  # Of welke branch je gebruikt
 
 jobs:
-  discord:
+  notify-discord:
     runs-on: ubuntu-latest
     steps:
-      - name: Checkout
-        uses: actions/checkout@v4
-
-      - name: Build commit embeds
-        id: commits
-        run: |
-          # Maak een lege array voor embeds
-          embeds="[]"
-
-          # Loop door alle commits in de push, filter merge commits
-          jq -c '.commits[] | select(.message | test("Merge pull request") | not)' $GITHUB_EVENT_PATH | while read commit; do
-            title=$(echo "$commit" | jq -r '.message')
-            url=$(echo "$commit" | jq -r '.url')
-            author_name=$(echo "$commit" | jq -r '.author.name')
-            author_username=$(echo "$commit" | jq -r '.author.username')
-
-            # Maak JSON embed voor deze commit
-            embed=$(jq -n \
-              --arg title "$title" \
-              --arg desc "$title" \
-              --arg url "$url" \
-              --arg name "$author_name" \
-              --arg icon "https://github.com/$author_username.png" \
-              '{title:$title, description:$desc, url:$url, author:{name:$name, icon_url:$icon}}')
-
-            # Voeg toe aan embeds array
-            if [ "$embeds" = "[]" ]; then
-              embeds="[$embed]"
-            else
-              embeds=$(echo "$embeds" | jq ". + [$embed]")
-            fi
-          done
-
-          # Zet embeds output
-          echo "commits_json=$embeds" >> $GITHUB_OUTPUT
-
-      - name: Send to Discord
-        uses: Sniddl/discord-commits@v1.6
+      - name: Send message to Discord
+        uses: Ilshidur/action-discord@v2
         with:
           webhook: ${{ secrets.DISCORD_WEBHOOK }}
-          template: "custom"
-          include-extras: true
-          embed: ${{ steps.commits.outputs.commits_json }}
+          message: |
+            Nieuwe update in de repository!
+            Auteur: ${{ github.actor }}
+            Branch: ${{ github.ref }}
+            Commit: ${{ github.sha }}
