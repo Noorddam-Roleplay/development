@@ -32,6 +32,7 @@ jobs:
             echo "text=$output" >> $GITHUB_OUTPUT
           else
             echo "text=" >> $GITHUB_OUTPUT
+          fi
 
       - name: Discord Commits
         uses: Sniddl/discord-commits@v1.6
