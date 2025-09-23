@@ -1,0 +1,63 @@
+name: Bug Report
+description: Meld een bug
+title: "[Bug]: "
+labels: ["bug", "server development", "nieuw", "issue"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Fijn dat je een bug wilt aanmaken, vul zo goed en gedetailleerd deze bug formulier in, zo kunnen we de bug/issue sneller onderzoeken en eruit halen
+  - type: input
+    id: contact
+    attributes:
+      label: Contact
+      description: Hoe kunnen we je contacteren op Discord als we extra informatie nodig hebben omtrent de bug?
+      placeholder: "Voorbeeld: Jeremy.#7020"
+    validations:
+      required: true
+  - type: textarea
+    id: what-happened
+    attributes:
+      label: Wat gebeurde er?
+      description: Welke meldingen zag je in je console, of wat gebeurde er precies waardoor de bug ontstond?
+      placeholder: |
+        Voorbeeld: Er kwam een melding in me beeld dat er een error kwam van een bepaald script. Hierdoor werkte de actie die ik wilde uitvoeren niet en kon ik niet verder met de roleplay.
+        Toen ik mijn F8 opende kwam er een error in mijn console.
+    validations:
+      required: true
+  - type: textarea
+    id: repro
+    attributes:
+      label: Wat veroorzaakt de bug?
+      description: Welke acties moeten wij uitvoeren om deze bug "na te bootsen"?
+      placeholder: |
+        Voorbeeld: Probeer iemand dood te schieten en omhoog te helpen, deze persoon kan dan niet omhoog geholpen worden.
+    validations:
+      required: true
+  - type: dropdown
+    id: frequency
+    attributes:
+      description: Hoevaak komt deze bug voor?
+      label: Frequentie van de bug
+      options:
+        - Altijd
+        - Meerdere keren per dag
+        - Af en toe
+    validations:
+      required: true
+  - type: dropdown
+    id: impact
+    attributes:
+      description: Heeft jij of iemand anders veel last van deze bug?
+      label: Wat is de impact van deze bug?
+      options:
+        - hoog
+        - laag
+        - geen
+  - type: textarea
+    id: logs
+    attributes:
+      label: Relevante log bestanden
+      description: |
+        Je kan hier je bestanden inplaatsen die te maken heeft met deze bug. Hieronder verstaan wij log bestanden, en of screenshots van de error. Indien je deze opstuurt, kunnen wij gerichter kijken naar de fout in de server.
+      placeholder: Sleep hier je logbestanden heen
