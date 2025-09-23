@@ -1,0 +1,46 @@
+name: Voertuigen Suggestie
+description: Meld een suggestie voor voertuigen
+title: "[Request]: "
+labels: ["request", "voertuigen development", "new"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Fijn dat je een voertuigen suggestie hebt. Vul dit formulier zo goed mogelijk in zodat wij deze request snel op kunnen pakken!
+  - type: input
+    id: contact
+    attributes:
+      label: Contact
+      description: Hoe kunnen we je contacteren op Discord als we extra informatie nodig hebben omtrent de suggestie?
+      placeholder: "Voorbeeld: Jeremy.#7020"
+    validations:
+      required: true
+  - type: textarea
+    id: wich-vehicle
+    attributes:
+      label: Welk voertuig suggesteer je?
+      description: Welk voertuig wil je in de server hebben. Kijk op www.gta5-mods.com voor de voertuigen models
+      placeholder: |
+        Voorbeeld: Ik wil graag de Audi RS6 Avant 2025 in de server hebben
+    validations:
+      required: true
+  - type: textarea
+    id: why
+    attributes:
+      label: Waarom suggesteer je dit voertuig?
+      description: Waarom wil je dit voertuig in de server hebben?
+      placeholder: |
+        Voorbeeld: Ik wil het bovenstaande voertuig in de server omdat ik een nieuw voertuig wil zien in de server, wat kan zorgen voor meer afwisseling en mogelijkheden in de server qua voertuigen. 
+    validations:
+      required: true
+  - type: dropdown
+    id: fast
+    attributes:
+      label: Hoe snel moet dit voertuig in de server?
+      description: Hoe snel moet dit voertuig in de server?
+      options:
+        - Snel
+        - Direct
+        - Geen tijdslot
+    validations:
+      required: true
