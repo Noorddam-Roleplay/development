@@ -36,7 +36,8 @@ jobs:
                    \"description\": \"$DESCRIPTION\",
                    \"color\": 16753920,
                    \"footer\": {
-                     \"text\": \"Noorddam Roleplay • GitHub\"
+                       \"text\": \"Auteur: $AUTHOR_NAME\",
+                       \"icon_url\": \"https://github.com/$AUTHOR_USERNAME.png\"
                    }
                  }]
                }" \
