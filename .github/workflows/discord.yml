@@ -10,39 +10,35 @@ jobs:
   notify:
     runs-on: ubuntu-latest
     steps:
-      - name: Verstuur meerdere commits als embeds in één bericht
+      - name: Verstuur commits als één embed
         run: |
-          EMBEDS="["
+          DESCRIPTION=""
+          COUNT=0
+          MAX=10
 
-          # Loop door alle commits in de push
+          # Loop door alle commits in deze push
           for COMMIT in $(jq -c '.commits[]' $GITHUB_EVENT_PATH); do
-            COMMIT_MSG=$(echo "$COMMIT" | jq -r '.message' | sed 's/"/\\"/g')
-            TITLE=$(echo "$COMMIT_MSG" | head -n1)
-            DESCRIPTION=$(echo "$COMMIT_MSG" | tail -n +2)
-            AUTHOR_NAME=$(echo "$COMMIT" | jq -r '.author.name' | sed 's/"/\\"/g')
-            AUTHOR_USERNAME=$(echo "$COMMIT" | jq -r '.author.username' | sed 's/"/\\"/g')
-
-            EMBED="{
-              \"title\": \"$TITLE\",
-              \"description\": \"$DESCRIPTION\",
-              \"color\": 16753920,
-              \"footer\": {
-                \"text\": \"Auteur: $AUTHOR_NAME\",
-                \"icon_url\": \"https://github.com/$AUTHOR_USERNAME.png\"
-              }
-            }"
-
-            # Voeg komma toe tussen embeds als het niet de eerste is
-            if [ "$EMBEDS" != "[" ]; then
-              EMBEDS+=","
+            if [ $COUNT -ge $MAX ]; then
+              break
             fi
-            EMBEDS+="$EMBED"
+            COMMIT_MSG=$(echo "$COMMIT" | jq -r '.message' | sed 's/"/\\"/g')
+            AUTHOR_NAME=$(echo "$COMMIT" | jq -r '.author.name' | sed 's/"/\\"/g')
+            DESCRIPTION+="$COMMIT_MSG — $AUTHOR_NAME\n\n"
+            COUNT=$((COUNT+1))
           done
 
-          EMBEDS+="]"
+          TITLE="Nieuwe commits in branch ${{ github.ref_name }}"
 
-          # Verstuur één POST met alle embeds
           curl -H "Content-Type: application/json" \
                -X POST \
-               -d "{\"embeds\": $EMBEDS}" \
+               -d "{
+                 \"embeds\": [{
+                   \"title\": \"$TITLE\",
+                   \"description\": \"$DESCRIPTION\",
+                   \"color\": 16753920,
+                   \"footer\": {
+                     \"text\": \"Noorddam Roleplay • GitHub\"
+                   }
+                 }]
+               }" \
                ${{ secrets.DISCORD_WEBHOOK }}
