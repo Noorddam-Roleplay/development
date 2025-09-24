@@ -1,45 +1,28 @@
-name: Discord Embed Notify
+- name: Verstuur meerdere embeds
+  run: |
+    EMBEDS=$(jq -n '[]')
+    for COMMIT in $(jq -c '.commits[]' $GITHUB_EVENT_PATH); do
+      TITLE=$(echo "$COMMIT" | jq -r '.message')
+      AUTHOR_NAME=$(echo "$COMMIT" | jq -r '.author.name')
+      AUTHOR_USERNAME=$(echo "$COMMIT" | jq -r '.author.username')
 
-on:
-  push:
-    branches:
-      - main
-      - master
+      EMBED=$(jq -n \
+        --arg title "$TITLE" \
+        --arg author_name "$AUTHOR_NAME" \
+        --arg author_icon "https://github.com/$AUTHOR_USERNAME.png" \
+        '{
+          title: $title,
+          color: 16753920,
+          author: {
+            name: $author_name,
+            icon_url: $author_icon
+          }
+        }')
 
-jobs:
-  notify:
-    runs-on: ubuntu-latest
-    steps:
-      - name: Verstuur meerdere embeds in één bericht naar Discord
-        run: |
-          EMBEDS="["
+      EMBEDS=$(echo "$EMBEDS" | jq ". + [$EMBED]")
+    done
 
-          # Loop door alle commits in deze push
-          for COMMIT in $(jq -c '.commits[]' $GITHUB_EVENT_PATH); do
-            COMMIT_MSG=$(echo "$COMMIT" | jq -r '.message' | sed 's/"/\\"/g')
-            AUTHOR_NAME=$(echo "$COMMIT" | jq -r '.author.name' | sed 's/"/\\"/g')
-            AUTHOR_USERNAME=$(echo "$COMMIT" | jq -r '.author.username' | sed 's/"/\\"/g')
-
-            EMBED="{
-              \"title\": \"$COMMIT_MSG\",
-              \"color\": 16753920,
-              \"author\": {
-                \"name\": \"$AUTHOR_NAME\",
-                \"icon_url\": \"https://github.com/$AUTHOR_USERNAME.png\"
-              }
-            }"
-
-            # Voeg komma toe tussen embeds als het niet de eerste is
-            if [ "$EMBEDS" != "[" ]; then
-              EMBEDS+=","
-            fi
-            EMBEDS+="$EMBED"
-          done
-
-          EMBEDS+="]"
-
-          # Verstuur één POST met alle embeds
-          curl -H "Content-Type: application/json" \
-               -X POST \
-               -d "{\"embeds\": $EMBEDS}" \
-               ${{ secrets.DISCORD_WEBHOOK }}
+    curl -H "Content-Type: application/json" \
+         -X POST \
+         -d "{\"embeds\": $EMBEDS}" \
+         ${{ secrets.DISCORD_WEBHOOK }}
