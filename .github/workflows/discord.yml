@@ -10,35 +10,37 @@ jobs:
   notify:
     runs-on: ubuntu-latest
     steps:
-      - name: Verstuur meerdere commits in één embed naar Discord
+      - name: Verstuur meerdere embeds in één bericht naar Discord
         run: |
-          # Initialiseer description
-          DESCRIPTION=""
+          EMBEDS="["
 
-          # Loop door alle commits in deze push
-          for COMMIT in $(jq -r '.commits[] | @base64' $GITHUB_EVENT_PATH); do
-            _jq() {
-              echo "${COMMIT}" | base64 --decode | jq -r "${1}"
-            }
-            COMMIT_MSG=$(_jq '.message')
-            AUTHOR_NAME=$(_jq '.author.name')
+          # Loop door alle commits
+          for COMMIT in $(jq -c '.commits[]' $GITHUB_EVENT_PATH); do
+            COMMIT_MSG=$(echo "$COMMIT" | jq -r '.message')
+            AUTHOR_NAME=$(echo "$COMMIT" | jq -r '.author.name')
+            AUTHOR_USERNAME=$(echo "$COMMIT" | jq -r '.author.username')
 
-            # Voeg commit toe aan de description
-            DESCRIPTION+="$COMMIT_MSG\n$AUTHOR_NAME\n\n"
+            EMBED="{
+              \"title\": \"$COMMIT_MSG\",
+              \"description\": \"Hier kan je extra info of uitleg zetten\",
+              \"color\": 16753920,
+              \"footer\": {
+                \"text\": \"Auteur: $AUTHOR_NAME\",
+                \"icon_url\": \"https://github.com/$AUTHOR_USERNAME.png\"
+              }
+            }"
+
+            # Voeg komma toe tussen embeds als het niet de eerste is
+            if [ "$EMBEDS" != "[" ]; then
+              EMBEDS+=","
+            fi
+            EMBEDS+="$EMBED"
           done
 
-          # Stuur één embed naar Discord
+          EMBEDS+="]"
+
+          # Verstuur één POST met alle embeds
           curl -H "Content-Type: application/json" \
                -X POST \
-               -d "{
-                 \"embeds\": [{
-                   \"title\": \"Nieuwe commits in branch ${{ github.ref_name }}\",
-                   \"description\": \"$DESCRIPTION\",
-                   \"color\": 16753920,
-                   \"footer\": {
-                       \"text\": \"Auteur: $AUTHOR_NAME\",
-                       \"icon_url\": \"https://github.com/$AUTHOR_USERNAME.png\"
-                   }
-                 }]
-               }" \
+               -d "{\"embeds\": $EMBEDS}" \
                ${{ secrets.DISCORD_WEBHOOK }}
