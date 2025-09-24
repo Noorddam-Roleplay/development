@@ -1,0 +1,31 @@
+name: Discord Embed Notify
+
+on:
+  push:
+    branches:
+      - main
+
+jobs:
+  notify:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Haal repo op
+        uses: actions/checkout@v4
+
+      - name: Stuur embed naar Discord
+        run: |
+          curl -H "Content-Type: application/json" \
+               -X POST \
+               -d "{
+                 \"embeds\": [{
+                   \"title\": \"Nieuwe commit in main\",
+                   \"description\": \"**${{ github.actor }}** pushte commit [${{ github.sha }}](${{ github.server_url }}/${{ github.repository }}/commit/${{ github.sha }})\",
+                   \"color\": 5814783,
+                   \"fields\": [
+                     {\"name\": \"Bericht\", \"value\": \"${{ github.event.head_commit.message }}\"}
+                   ],
+                   \"footer\": {\"text\": \"Noorddam Roleplay • GitHub\"},
+                   \"timestamp\": \"${{ github.event.head_commit.timestamp }}\"
+                 }]
+               }" \
+               ${{ secrets.DISCORD_WEBHOOK }}
