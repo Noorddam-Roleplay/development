@@ -10,27 +10,34 @@ jobs:
   notify:
     runs-on: ubuntu-latest
     steps:
-      - name: Verstuur alle commits naar Discord
+      - name: Verstuur meerdere commits in één embed naar Discord
         run: |
-          for COMMIT_SHA in $(jq -r '.commits[].id' $GITHUB_EVENT_PATH); do
-            # Haal commit message en auteur op
-            COMMIT_MSG=$(jq -r ".commits[] | select(.id==\"$COMMIT_SHA\") | .message" $GITHUB_EVENT_PATH)
-            AUTHOR_NAME=$(jq -r ".commits[] | select(.id==\"$COMMIT_SHA\") | .author.name" $GITHUB_EVENT_PATH)
-            AUTHOR_USERNAME=$(jq -r ".commits[] | select(.id==\"$COMMIT_SHA\") | .author.username" $GITHUB_EVENT_PATH)
+          # Initialiseer description
+          DESCRIPTION=""
 
-            # Stuur naar Discord
-            curl -H "Content-Type: application/json" \
-                 -X POST \
-                 -d "{
-                   \"embeds\": [{
-                     \"title\": \"$COMMIT_MSG\",
-                     \"description\": \"\",
-                     \"color\": 16753920,
-                     \"footer\": {
-                       \"text\": \"$AUTHOR_NAME\",
-                       \"icon_url\": \"https://github.com/$AUTHOR_USERNAME.png\"
-                     }
-                   }]
-                 }" \
-                 ${{ secrets.DISCORD_WEBHOOK }}
+          # Loop door alle commits in deze push
+          for COMMIT in $(jq -r '.commits[] | @base64' $GITHUB_EVENT_PATH); do
+            _jq() {
+              echo "${COMMIT}" | base64 --decode | jq -r "${1}"
+            }
+            COMMIT_MSG=$(_jq '.message')
+            AUTHOR_NAME=$(_jq '.author.name')
+
+            # Voeg commit toe aan de description
+            DESCRIPTION+="$COMMIT_MSG\n$AUTHOR_NAME\n\n"
           done
+
+          # Stuur één embed naar Discord
+          curl -H "Content-Type: application/json" \
+               -X POST \
+               -d "{
+                 \"embeds\": [{
+                   \"title\": \"Nieuwe commits in branch ${{ github.ref_name }}\",
+                   \"description\": \"$DESCRIPTION\",
+                   \"color\": 16753920,
+                   \"footer\": {
+                     \"text\": \"Noorddam Roleplay • GitHub\"
+                   }
+                 }]
+               }" \
+               ${{ secrets.DISCORD_WEBHOOK }}
