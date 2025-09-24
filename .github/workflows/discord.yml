@@ -22,10 +22,9 @@ jobs:
 
             EMBED="{
               \"title\": \"$COMMIT_MSG\",
-              \"description\": \"$COMMIT_MSG\",
               \"color\": 16753920,
-              \"footer\": {
-                \"text\": \"Auteur: $AUTHOR_NAME\",
+              \"author\": {
+                \"name\": \"$AUTHOR_NAME\",
                 \"icon_url\": \"https://github.com/$AUTHOR_USERNAME.png\"
               }
             }"
