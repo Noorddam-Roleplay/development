@@ -1,0 +1,54 @@
+name: Server Suggestie
+description: Meld een suggestie voor de server
+title: "[Request]: "
+labels: ["request", "server development", "new"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Fijn dat je een server suggestie hebt. Vul dit formulier zo goed mogelijk in zodat wij deze request snel op kunnen pakken!
+  - type: input
+    id: contact
+    attributes:
+      label: Contact
+      description: Hoe kunnen we je contacteren op Discord als we extra informatie nodig hebben omtrent de suggestie?
+      placeholder: "Voorbeeld: Jeremy.#7020"
+    validations:
+      required: true
+  - type: textarea
+    id: wich-vehicle
+    attributes:
+      label: Welk server suggestie suggesteer je?
+      description: Welk script/mod/plugin wil je in de server hebben. Kijk op www.github.com voor de "orginele" plugins. Wij downloaden niks van een remake, dump of een andere server die geleaked is in scripts.
+      placeholder: |
+        Voorbeeld: Ik wil graag dat er een mogelijkheid is om mensen neer te kunnen schieten vanuit een straaljager.
+    validations:
+      required: true
+  - type: textarea
+    id: why
+    attributes:
+      label: Waarom suggesteer je deze suggestie?
+      description: Waarom wil je deze plugin in de server hebben?
+      placeholder: |
+        Voorbeeld: Ik wil bovenstaande plugin in de server hebben, omdat dit de roleplay doet verbeteren en de roleplay wordt hier beter door
+    validations:
+      required: true
+  - type: textarea
+    id: link-to
+    attributes:
+      label: Link naar de plugin
+      description: Voeg hieronder de link naar de plugin
+      placeholder: |
+        Voorbeeld: www.github.com/Straaljager-plugin
+    validations:
+      required: true
+  - type: dropdown
+    id: fast
+    attributes:
+      label: Hoe snel moet deze plugin in de server?
+      options:
+        - Snel
+        - Direct
+        - Geen tijdslot
+    validations:
+      required: true
