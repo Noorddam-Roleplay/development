@@ -14,15 +14,15 @@ jobs:
         run: |
           EMBEDS="["
 
-          # Loop door alle commits
+          # Loop door alle commits in deze push
           for COMMIT in $(jq -c '.commits[]' $GITHUB_EVENT_PATH); do
-            COMMIT_MSG=$(echo "$COMMIT" | jq -r '.message')
-            AUTHOR_NAME=$(echo "$COMMIT" | jq -r '.author.name')
-            AUTHOR_USERNAME=$(echo "$COMMIT" | jq -r '.author.username')
+            COMMIT_MSG=$(echo "$COMMIT" | jq -r '.message' | sed 's/"/\\"/g')
+            AUTHOR_NAME=$(echo "$COMMIT" | jq -r '.author.name' | sed 's/"/\\"/g')
+            AUTHOR_USERNAME=$(echo "$COMMIT" | jq -r '.author.username' | sed 's/"/\\"/g')
 
             EMBED="{
               \"title\": \"$COMMIT_MSG\",
-              \"description\": \"Hier kan je extra info of uitleg zetten\",
+              \"description\": \"$COMMIT_MSG\",
               \"color\": 16753920,
               \"footer\": {
                 \"text\": \"Auteur: $AUTHOR_NAME\",
