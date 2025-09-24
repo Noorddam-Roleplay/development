@@ -10,35 +10,44 @@ jobs:
   notify:
     runs-on: ubuntu-latest
     steps:
-      - name: Verstuur commits als één embed
+      - name: Verstuur meerdere embeds in één bericht
         run: |
-          DESCRIPTION=""
-          COUNT=0
-          MAX=10
+          EMBEDS="["
 
-          # Loop door alle commits in deze push
+          COUNT=0
+          MAX=10  # Discord ondersteunt max 10 embeds per bericht
+
+          # Loop door alle commits
           for COMMIT in $(jq -c '.commits[]' $GITHUB_EVENT_PATH); do
             if [ $COUNT -ge $MAX ]; then
               break
             fi
+
             COMMIT_MSG=$(echo "$COMMIT" | jq -r '.message' | sed 's/"/\\"/g')
             AUTHOR_NAME=$(echo "$COMMIT" | jq -r '.author.name' | sed 's/"/\\"/g')
-            DESCRIPTION+="$COMMIT_MSG — $AUTHOR_NAME\n\n"
+            AUTHOR_USERNAME=$(echo "$COMMIT" | jq -r '.author.username' | sed 's/"/\\"/g')
+
+            EMBED="{
+              \"title\": \"$COMMIT_MSG\",
+              \"color\": 16753920,
+              \"footer\": {
+                \"text\": \"Auteur: $AUTHOR_NAME\",
+                \"icon_url\": \"https://github.com/$AUTHOR_USERNAME.png\"
+              }
+            }"
+
+            if [ "$EMBEDS" != "[" ]; then
+              EMBEDS+=","
+            fi
+            EMBEDS+="$EMBED"
+
             COUNT=$((COUNT+1))
           done
 
-          TITLE="Nieuwe commits in branch ${{ github.ref_name }}"
+          EMBEDS+="]"
 
+          # Verstuur één POST met alle embeds
           curl -H "Content-Type: application/json" \
                -X POST \
-               -d "{
-                 \"embeds\": [{
-                   \"title\": \"$TITLE\",
-                   \"description\": \"$DESCRIPTION\",
-                   \"color\": 16753920,
-                   \"footer\": {
-                     \"text\": \"Noorddam Roleplay • GitHub\"
-                   }
-                 }]
-               }" \
+               -d "{\"embeds\": $EMBEDS}" \
                ${{ secrets.DISCORD_WEBHOOK }}
