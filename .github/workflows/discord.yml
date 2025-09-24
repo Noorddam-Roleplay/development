@@ -10,44 +10,9 @@ jobs:
   notify:
     runs-on: ubuntu-latest
     steps:
-      - name: Verstuur meerdere embeds in één bericht
-        run: |
-          EMBEDS="["
-
-          COUNT=0
-          MAX=10  # Discord ondersteunt max 10 embeds per bericht
-
-          # Loop door alle commits
-          for COMMIT in $(jq -c '.commits[]' $GITHUB_EVENT_PATH); do
-            if [ $COUNT -ge $MAX ]; then
-              break
-            fi
-
-            COMMIT_MSG=$(echo "$COMMIT" | jq -r '.message' | sed 's/"/\\"/g')
-            AUTHOR_NAME=$(echo "$COMMIT" | jq -r '.author.name' | sed 's/"/\\"/g')
-            AUTHOR_USERNAME=$(echo "$COMMIT" | jq -r '.author.username' | sed 's/"/\\"/g')
-
-            EMBED="{
-              \"title\": \"$COMMIT_MSG\",
-              \"color\": 16753920,
-              \"footer\": {
-                \"text\": \"Auteur: $AUTHOR_NAME\",
-                \"icon_url\": \"https://github.com/$AUTHOR_USERNAME.png\"
-              }
-            }"
-
-            if [ "$EMBEDS" != "[" ]; then
-              EMBEDS+=","
-            fi
-            EMBEDS+="$EMBED"
-
-            COUNT=$((COUNT+1))
-          done
-
-          EMBEDS+="]"
-
-          # Verstuur één POST met alle embeds
-          curl -H "Content-Type: application/json" \
-               -X POST \
-               -d "{\"embeds\": $EMBEDS}" \
-               ${{ secrets.DISCORD_WEBHOOK }}
+      - name: Verstuur commits naar Discord
+        uses: Sniddl/discord-commits@v1.6
+        with:
+          webhook: ${{ secrets.DISCORD_WEBHOOK }}
+          template: "avatar-with-link"
+          include-extras: true
