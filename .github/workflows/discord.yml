@@ -33,8 +33,4 @@ jobs:
                    }
                  }]
                }" \
-<<<<<<< HEAD
                ${{ secrets.DISCORD_WEBHOOK }}
-=======
-               ${{ secrets.DISCORD_WEBHOOK }}
->>>>>>> ae9faa6c52a19928600496f676fa100efc7841d4
