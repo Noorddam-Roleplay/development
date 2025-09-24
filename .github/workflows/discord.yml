@@ -12,19 +12,15 @@ jobs:
     steps:
       - name: Verstuur naar Discord
         run: |
-          # Pak de commit message
-          COMMIT_MSG="${{ github.event.head_commit.message }}"
-          # Eerste regel = title
-          TITLE=$(echo "$COMMIT_MSG" | head -n1)
-          # Rest = description (alles behalve eerste regel)
-          DESCRIPTION=$(echo "$COMMIT_MSG" | tail -n +2)
+          # Pak de volledige commit message
+          DESCRIPTION="${{ github.event.head_commit.message }}"
 
           # Stuur naar Discord
           curl -H "Content-Type: application/json" \
                -X POST \
                -d "{
                  \"embeds\": [{
-                   \"title\": \"$TITLE\",
+                   \"title\": \"\",
                    \"description\": \"$DESCRIPTION\",
                    \"color\": 16753920,
                    \"footer\": {
