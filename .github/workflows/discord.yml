@@ -10,27 +10,27 @@ jobs:
   notify:
     runs-on: ubuntu-latest
     steps:
-      - name: Verstuur naar Discord
+      - name: Verstuur alle commits naar Discord
         run: |
-          # Pak de commit message
-          COMMIT_MSG="${{ github.event.head_commit.message }}"
-          # Eerste regel = title
-          TITLE=$(echo "$COMMIT_MSG" | head -n1)
-          # Rest = description (alles behalve eerste regel)
-          DESCRIPTION=$(echo "$COMMIT_MSG" | tail -n +2)
+          for COMMIT_SHA in $(jq -r '.commits[].id' $GITHUB_EVENT_PATH); do
+            # Haal commit message en auteur op
+            COMMIT_MSG=$(jq -r ".commits[] | select(.id==\"$COMMIT_SHA\") | .message" $GITHUB_EVENT_PATH)
+            AUTHOR_NAME=$(jq -r ".commits[] | select(.id==\"$COMMIT_SHA\") | .author.name" $GITHUB_EVENT_PATH)
+            AUTHOR_USERNAME=$(jq -r ".commits[] | select(.id==\"$COMMIT_SHA\") | .author.username" $GITHUB_EVENT_PATH)
 
-          # Stuur naar Discord
-          curl -H "Content-Type: application/json" \
-               -X POST \
-               -d "{
-                 \"embeds\": [{
-                   \"title\": \"$TITLE\",
-                   \"description\": \"$DESCRIPTION\",
-                   \"color\": 16753920,
-                   \"footer\": {
-                     \"text\": \"${{ github.event.head_commit.author.name }}\",
-                     \"icon_url\": \"https://github.com/${{ github.event.head_commit.author.username }}.png\"
-                   }
-                 }]
-               }" \
-               ${{ secrets.DISCORD_WEBHOOK }}
+            # Stuur naar Discord
+            curl -H "Content-Type: application/json" \
+                 -X POST \
+                 -d "{
+                   \"embeds\": [{
+                     \"title\": \"$COMMIT_MSG\",
+                     \"description\": \"\",
+                     \"color\": 16753920,
+                     \"footer\": {
+                       \"text\": \"$AUTHOR_NAME\",
+                       \"icon_url\": \"https://github.com/$AUTHOR_USERNAME.png\"
+                     }
+                   }]
+                 }" \
+                 ${{ secrets.DISCORD_WEBHOOK }}
+          done
