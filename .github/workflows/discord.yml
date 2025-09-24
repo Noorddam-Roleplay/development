@@ -10,39 +10,9 @@ jobs:
   notify:
     runs-on: ubuntu-latest
     steps:
-      - name: Verstuur meerdere commits als embeds in één bericht
-        run: |
-          EMBEDS="["
-
-          # Loop door alle commits in de push
-          for COMMIT in $(jq -c '.commits[]' $GITHUB_EVENT_PATH); do
-            COMMIT_MSG=$(echo "$COMMIT" | jq -r '.message' | sed 's/"/\\"/g')
-            TITLE=$(echo "$COMMIT_MSG" | head -n1)
-            DESCRIPTION=$(echo "$COMMIT_MSG" | tail -n +2)
-            AUTHOR_NAME=$(echo "$COMMIT" | jq -r '.author.name' | sed 's/"/\\"/g')
-            AUTHOR_USERNAME=$(echo "$COMMIT" | jq -r '.author.username' | sed 's/"/\\"/g')
-
-            EMBED="{
-              \"title\": \"$TITLE\",
-              \"description\": \"$DESCRIPTION\",
-              \"color\": 16753920,
-              \"footer\": {
-                \"text\": \"Auteur: $AUTHOR_NAME\",
-                \"icon_url\": \"https://github.com/$AUTHOR_USERNAME.png\"
-              }
-            }"
-
-            # Voeg komma toe tussen embeds als het niet de eerste is
-            if [ "$EMBEDS" != "[" ]; then
-              EMBEDS+=","
-            fi
-            EMBEDS+="$EMBED"
-          done
-
-          EMBEDS+="]"
-
-          # Verstuur één POST met alle embeds
-          curl -H "Content-Type: application/json" \
-               -X POST \
-               -d "{\"embeds\": $EMBEDS}" \
-               ${{ secrets.DISCORD_WEBHOOK }}
+      - name: Verstuur commits naar Discord
+        uses: Sniddl/discord-commits@v1.6
+        with:
+          webhook: ${{ secrets.DISCORD_WEBHOOK }}
+          template: "avatar-with-link"
+          include-extras: true
