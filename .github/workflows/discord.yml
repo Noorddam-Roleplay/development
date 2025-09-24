@@ -27,7 +27,7 @@ jobs:
                      \"description\": \"\",
                      \"color\": 16753920,
                      \"footer\": {
-                       \"text\": \"Auteur: $AUTHOR_NAME\",
+                       \"text\": \"$AUTHOR_NAME\",
                        \"icon_url\": \"https://github.com/$AUTHOR_USERNAME.png\"
                      }
                    }]
