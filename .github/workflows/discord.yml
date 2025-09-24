@@ -12,34 +12,36 @@ jobs:
     steps:
       - name: Verstuur meerdere commits als embeds in één bericht
         run: |
-          # Start met een lege array van embeds
-          EMBEDS=$(jq -n '[]')
+          EMBEDS="["
 
-          # Loop door alle commits in deze push
+          # Loop door alle commits in de push
           for COMMIT in $(jq -c '.commits[]' $GITHUB_EVENT_PATH); do
-            TITLE=$(echo "$COMMIT" | jq -r '.message')
-            AUTHOR_NAME=$(echo "$COMMIT" | jq -r '.author.name')
-            AUTHOR_USERNAME=$(echo "$COMMIT" | jq -r '.author.username')
+            COMMIT_MSG=$(echo "$COMMIT" | jq -r '.message' | sed 's/"/\\"/g')
+            TITLE=$(echo "$COMMIT_MSG" | head -n1)
+            DESCRIPTION=$(echo "$COMMIT_MSG" | tail -n +2)
+            AUTHOR_NAME=$(echo "$COMMIT" | jq -r '.author.name' | sed 's/"/\\"/g')
+            AUTHOR_USERNAME=$(echo "$COMMIT" | jq -r '.author.username' | sed 's/"/\\"/g')
 
-            # Maak een embed voor deze commit
-            EMBED=$(jq -n \
-              --arg title "$TITLE" \
-              --arg author_name "$AUTHOR_NAME" \
-              --arg author_icon "https://github.com/$AUTHOR_USERNAME.png" \
-              '{
-                title: $title,
-                color: 16753920,
-                author: {
-                  name: $author_name,
-                  icon_url: $author_icon
-                }
-              }')
+            EMBED="{
+              \"title\": \"$TITLE\",
+              \"description\": \"$DESCRIPTION\",
+              \"color\": 16753920,
+              \"footer\": {
+                \"text\": \"Auteur: $AUTHOR_NAME\",
+                \"icon_url\": \"https://github.com/$AUTHOR_USERNAME.png\"
+              }
+            }"
 
-            # Voeg embed toe aan de array
-            EMBEDS=$(echo "$EMBEDS" | jq ". + [$EMBED]")
+            # Voeg komma toe tussen embeds als het niet de eerste is
+            if [ "$EMBEDS" != "[" ]; then
+              EMBEDS+=","
+            fi
+            EMBEDS+="$EMBED"
           done
 
-          # Verstuur één POST naar Discord met alle embeds
+          EMBEDS+="]"
+
+          # Verstuur één POST met alle embeds
           curl -H "Content-Type: application/json" \
                -X POST \
                -d "{\"embeds\": $EMBEDS}" \
