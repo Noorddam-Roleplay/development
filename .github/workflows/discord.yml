@@ -10,27 +10,36 @@ jobs:
   notify:
     runs-on: ubuntu-latest
     steps:
-      - name: Verstuur alle commits naar Discord
+      - name: Verstuur meerdere embeds in één bericht naar Discord
         run: |
-          for COMMIT_SHA in $(jq -r '.commits[].id' $GITHUB_EVENT_PATH); do
-            # Haal commit message en auteur op
-            COMMIT_MSG=$(jq -r ".commits[] | select(.id==\"$COMMIT_SHA\") | .message" $GITHUB_EVENT_PATH)
-            AUTHOR_NAME=$(jq -r ".commits[] | select(.id==\"$COMMIT_SHA\") | .author.name" $GITHUB_EVENT_PATH)
-            AUTHOR_USERNAME=$(jq -r ".commits[] | select(.id==\"$COMMIT_SHA\") | .author.username" $GITHUB_EVENT_PATH)
+          EMBEDS="["
 
-            # Stuur naar Discord
-            curl -H "Content-Type: application/json" \
-                 -X POST \
-                 -d "{
-                   \"embeds\": [{
-                     \"title\": \"$COMMIT_MSG\",
-                     \"description\": \"\",
-                     \"color\": 16753920,
-                     \"footer\": {
-                       \"text\": \"$AUTHOR_NAME\",
-                       \"icon_url\": \"https://github.com/$AUTHOR_USERNAME.png\"
-                     }
-                   }]
-                 }" \
-                 ${{ secrets.DISCORD_WEBHOOK }}
+          # Loop door alle commits in deze push
+          for COMMIT in $(jq -c '.commits[]' $GITHUB_EVENT_PATH); do
+            COMMIT_MSG=$(echo "$COMMIT" | jq -r '.message' | sed 's/"/\\"/g')
+            AUTHOR_NAME=$(echo "$COMMIT" | jq -r '.author.name' | sed 's/"/\\"/g')
+            AUTHOR_USERNAME=$(echo "$COMMIT" | jq -r '.author.username' | sed 's/"/\\"/g')
+
+            EMBED="{
+              \"title\": \"$COMMIT_MSG\",
+              \"color\": 16753920,
+              \"author\": {
+                \"name\": \"$AUTHOR_NAME\",
+                \"icon_url\": \"https://github.com/$AUTHOR_USERNAME.png\"
+              }
+            }"
+
+            # Voeg komma toe tussen embeds als het niet de eerste is
+            if [ "$EMBEDS" != "[" ]; then
+              EMBEDS+=","
+            fi
+            EMBEDS+="$EMBED"
           done
+
+          EMBEDS+="]"
+
+          # Verstuur één POST met alle embeds
+          curl -H "Content-Type: application/json" \
+               -X POST \
+               -d "{\"embeds\": $EMBEDS}" \
+               ${{ secrets.DISCORD_WEBHOOK }}
