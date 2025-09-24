@@ -4,28 +4,26 @@ on:
   push:
     branches:
       - main
+      - master
 
 jobs:
   notify:
     runs-on: ubuntu-latest
     steps:
-      - name: Haal repo op
-        uses: actions/checkout@v4
-
-      - name: Stuur embed naar Discord
+      - name: Verstuur naar Discord
         run: |
           curl -H "Content-Type: application/json" \
                -X POST \
                -d "{
                  \"embeds\": [{
-                   \"title\": \"Nieuwe commit in main\",
-                   \"description\": \"**${{ github.actor }}** pushte commit [${{ github.sha }}](${{ github.server_url }}/${{ github.repository }}/commit/${{ github.sha }})\",
-                   \"color\": 5814783,
-                   \"fields\": [
-                     {\"name\": \"Bericht\", \"value\": \"${{ github.event.head_commit.message }}\"}
-                   ],
-                   \"footer\": {\"text\": \"Noorddam Roleplay • GitHub\"},
-                   \"timestamp\": \"${{ github.event.head_commit.timestamp }}\"
+                   \"title\": \"${{ github.event.head_commit.message }}\",
+                   \"color\": 16753920,
+                   \"author\": {
+                     \"name\": \"${{ github.event.head_commit.author.name }}\",
+                     \"icon_url\": \"${{ github.event.head_commit.author.avatar_url }}\"
+                   }
                  }]
                }" \
                ${{ secrets.DISCORD_WEBHOOK }}
+
+
