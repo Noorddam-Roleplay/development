@@ -19,12 +19,11 @@ jobs:
         uses: Sniddl/discord-commits@v1.6
         with:
           webhook: ${{ secrets.DISCORD_WEBHOOK }}
-          message: "Successful commit to **{{ github.context.payload.repository.owner.name }}/{{ github.context.payload.repository.name }}**.\nDiff: {{ github.context.payload.compare }}"
           embed: >
             {
-              "title": "{{ commit.title }}",
-              "description": "{{ commit.description }}",
+              "description": "{{ commit.title }}",
               "url": "{{ commit.url }}",
+              "color": 15562010,
               "footer": {
                 "text": "{{ commit.author.name }}",
                 "icon_url": "https://github.com/{{ commit.author.username }}.png"
