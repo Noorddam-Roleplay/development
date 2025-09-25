@@ -15,4 +15,4 @@ jobs:
         with:
           webhook: ${{ secrets.DISCORD_WEBHOOK }}
           template: "./discord-template.js"
-          include-extras: false
+          include-extras: true
