@@ -1,0 +1,10 @@
+{
+  "title": "{{ commits[-1].message }}",
+  "description": "{{ commits[-1].body }}",
+  "color": 5814783,
+  "footer": {
+    "text": "{{ commits[-1].author.name }}",
+    "icon_url": "{{ commits[-1].author.avatar_url }}"
+  },
+  "timestamp": "{{ commits[-1].timestamp }}"
+}
