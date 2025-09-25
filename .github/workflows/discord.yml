@@ -10,7 +10,7 @@ jobs:
   notify:
     runs-on: ubuntu-latest
     steps:
-    - name: Verstuur commits naar Discord
+      - name: Verstuur commits naar Discord
         uses: Sniddl/discord-commits@v1.6
         with:
           webhook: ${{ secrets.DISCORD_WEBHOOK }}
