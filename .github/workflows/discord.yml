@@ -30,4 +30,4 @@ jobs:
                 "icon_url": "https://github.com/{{ commit.author.username }}.png"
               }
             }
-          last-commit-only: true
+          last-commit-only: false
