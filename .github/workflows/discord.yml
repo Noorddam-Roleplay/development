@@ -10,9 +10,14 @@ jobs:
   notify:
     runs-on: ubuntu-latest
     steps:
+      # 1️⃣ Checkout de repo zodat de actie commits kan lezen
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      # 2️⃣ Verstuur commits naar Discord
       - name: Verstuur commits naar Discord
         uses: Sniddl/discord-commits@v1.6
         with:
           webhook: ${{ secrets.DISCORD_WEBHOOK }}
           template: "./discord-template.js"
-          include-extras: true
+          include-extras: false
