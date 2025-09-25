@@ -1,16 +1,14 @@
 export default {
-    message: "Successful commit to **{{ github.context.payload.repository.owner.name }}/{{ github.context.payload.repository.name}}**",
+    // Fallback message (zichtbaar als embed niet werkt)
+    message: "Nieuwe commit in {{ github.context.payload.repository.full_name }}: {{ commit.title }}",
+
     embed: {
-        title: "{{ commit.title }}",
-        description: "{{ commit.description }}",
-        url: "{{ commit.url }}",
-        author: {
-            name: "{{ commit.author.name }}",
-            icon_url: "https://github.com/{{ commit.author.username }}.png"
+        title: "{{ commit.title }}",               // commit title als embed title
+        description: "{{ commit.description }}",  // commit description/body
+        url: "{{ commit.url }}",                   // link naar commit
+        footer: {
+            text: "{{ commit.author.name }}",     // auteur in footer
+            icon_url: "https://github.com/{{ commit.author.username }}.png" // profielfoto
         }
-    },
-    extras: [{
-        title: "View All Changes",
-        url: "{{ github.context.payload.compare }}"
-    }]
+    }
 }
