@@ -21,7 +21,8 @@ jobs:
           webhook: ${{ secrets.DISCORD_WEBHOOK }}
           embed: >
             {
-              "description": "{{ commit.title }}",
+              "title": "{{ commit.title }}",
+              "description": "{{ commit.description }}",
               "url": "{{ commit.url }}",
               "color": 15562010,
               "footer": {
