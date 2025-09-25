@@ -10,14 +10,24 @@ jobs:
   notify:
     runs-on: ubuntu-latest
     steps:
-      # 1️⃣ Checkout de repo zodat de actie commits kan lezen
+      # Checkout is nodig zodat commits beschikbaar zijn
       - name: Checkout repository
         uses: actions/checkout@v4
 
-      # 2️⃣ Verstuur commits naar Discord
-      - name: Verstuur commits naar Discord
+      # Verstuur commits naar Discord
+      - name: Discord Commits
         uses: Sniddl/discord-commits@v1.6
         with:
           webhook: ${{ secrets.DISCORD_WEBHOOK }}
-          template: "./discord-template.js"
-          include-extras: false
+          message: "Successful commit to **{{ github.context.payload.repository.owner.name }}/{{ github.context.payload.repository.name }}**.\nDiff: {{ github.context.payload.compare }}"
+          embed: >
+            {
+              "title": "{{ commit.title }}",
+              "description": "{{ commit.description }}",
+              "url": "{{ commit.url }}",
+              "author": {
+                "name": "{{ commit.author.name }} ({{ commit.author.username }})",
+                "icon_url": "https://avatars.io/gravatar/{{ commit.author.email }}"
+              }
+            }
+          last-commit-only: true
