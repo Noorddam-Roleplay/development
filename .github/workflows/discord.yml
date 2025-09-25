@@ -10,11 +10,6 @@ jobs:
   notify:
     runs-on: ubuntu-latest
     steps:
-      # Checkout de repo zodat commits beschikbaar zijn
-      - name: Checkout repository
-        uses: actions/checkout@v4
-
-      # Verstuur commits naar Discord met custom embed
       - name: Verstuur commits naar Discord
         uses: Sniddl/discord-commits@v1.6
         with:
